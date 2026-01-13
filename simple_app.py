@@ -2,62 +2,54 @@ import streamlit as st
 import numpy as np
 from PIL import Image
 import tensorflow as tf
+from tensorflow.keras.models import load_model
 
 # ----------------------------
 # App Config
 # ----------------------------
 st.set_page_config(
     page_title="Dogs vs Cats Classifier",
-    page_icon=None,  # No emoji
+    page_icon="🐶🐱",
     layout="centered"
 )
 
-st.title("Dogs vs Cats Classification")
-st.write("Upload an image and let the AI decide whether it's a Dog or a Cat.")
+st.title("🐶🐱 Dogs vs Cats Classification")
+st.write("Upload an image and let the AI predict whether it's a Dog or a Cat.")
 
 # ----------------------------
 # Load Model
 # ----------------------------
-@st.cache_resource
-def load_model():
-    model = tf.keras.models.load_model("vgg16_best_model.keras")
-    return model
-
-model = load_model()
+# Make sure your model file (best_model.keras) is in the same repo folder
+try:
+    model = load_model("best_model.keras")
+except Exception as e:
+    st.error(f"Error loading model: {e}")
 
 # ----------------------------
-# Image Preprocessing
+# Image Upload
 # ----------------------------
-def preprocess_image(image):
-    image = image.resize((150, 150))
-    img_array = np.array(image) / 255.0  # normalize pixel values
+uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+if uploaded_file:
+    img = Image.open(uploaded_file)
+    st.image(img, caption='Uploaded Image', use_column_width=True)
+
+    # ----------------------------
+    # Preprocess Image
+    # ----------------------------
+    img_resized = img.resize((150, 150))  # same size used in your CNN
+    img_array = np.array(img_resized) / 255.0
     img_array = np.expand_dims(img_array, axis=0)
-    return img_array
 
-# ----------------------------
-# Upload Image
-# ----------------------------
-uploaded_file = st.file_uploader(
-    "Upload an image",
-    type=["jpg", "jpeg", "png"]
-)
+    # ----------------------------
+    # Make Prediction
+    # ----------------------------
+    try:
+        prediction = model.predict(img_array)
+        class_index = np.argmax(prediction, axis=1)[0]
 
-if uploaded_file is not None:
-    image = Image.open(uploaded_file).convert("RGB")
-    st.image(image, caption="Uploaded Image", use_column_width=True)
-
-    if st.button("Predict"):
-        processed_image = preprocess_image(image)
-        prediction = model.predict(processed_image)[0][0]
-
-        if prediction > 0.5:
-            st.success(f"Dog ({prediction*100:.2f}% confidence)")
+        if class_index == 0:
+            st.success("This is a **Cat** 🐱")
         else:
-            st.success(f"Cat ({(1 - prediction)*100:.2f}% confidence)")
-
-# ----------------------------
-# Footer
-# ----------------------------
-st.markdown("---")
-st.markdown("Model: VGG16 Transfer Learning")
-st.markdown("Built with Streamlit")
+            st.success("This is a **Dog** 🐶")
+    except Exception as e:
+        st.error(f"Error making prediction: {e}")
