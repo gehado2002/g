@@ -26,11 +26,11 @@ model = load_model()
 # ----------------------------
 st.set_page_config(
     page_title="Dogs vs Cats Classifier",
-    page_icon="🐶🐱",
+    page_icon=":dog: :cat:",  # بدل الإيموجي المباشر
     layout="centered"
 )
 
-st.title("🐶🐱 Dogs vs Cats Classification")
+st.title("Dogs vs Cats Classification")
 st.write("Upload an image and let the AI decide whether it's a Dog or a Cat.")
 
 # رفع صورة
@@ -43,4 +43,5 @@ if uploaded_file:
     img_array = np.expand_dims(img_array, axis=0)
 
     prediction = model.predict(img_array)
-    st.success("Prediction: " + ("Dog 🐶" if prediction[0][0] > 0.5 else "Cat 🐱"))
+    result = "Dog" if prediction[0][0] > 0.5 else "Cat"
+    st.success(f"Prediction: {result}")
