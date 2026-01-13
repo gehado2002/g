@@ -6,18 +6,17 @@ import gdown
 import os
 
 # ----------------------------
-# تحميل الموديل من Google Drive لو مش موجود محلياً
+# موديل من Google Drive
 # ----------------------------
-model_path = "vgg16_best_model.keras"
-gdrive_url = "https://drive.google.com/uc?id=1X-OXVhF_2sIv2FDGXVIQ_oRSo4HnFc9H"
+MODEL_PATH = "vgg16_best_model.keras"
+GDRIVE_URL = "https://drive.google.com/uc?id=1X-OXVhF_2sIv2FDGXVIQ_oRSo4HnFc9H"
 
-# تحميل الموديل مرة واحدة عند بدء التطبيق
 @st.cache_resource(show_spinner=True)
 def load_model():
-    if not os.path.exists(model_path):
-        st.info("تحميل الموديل من Google Drive ...")
-        gdown.download(gdrive_url, model_path, quiet=False)
-    return tf.keras.models.load_model(model_path)
+    if not os.path.exists(MODEL_PATH):
+        st.info("Downloading model from Google Drive...")
+        gdown.download(GDRIVE_URL, MODEL_PATH, quiet=False)
+    return tf.keras.models.load_model(MODEL_PATH)
 
 model = load_model()
 
@@ -26,14 +25,16 @@ model = load_model()
 # ----------------------------
 st.set_page_config(
     page_title="Dogs vs Cats Classifier",
-    page_icon=":dog: :cat:",  # بدل الإيموجي المباشر
+    page_icon=":dog:",  # بديل الإيموجي مباشرة
     layout="centered"
 )
 
 st.title("Dogs vs Cats Classification")
 st.write("Upload an image and let the AI decide whether it's a Dog or a Cat.")
 
+# ----------------------------
 # رفع صورة
+# ----------------------------
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg","png","jpeg"])
 if uploaded_file:
     image = Image.open(uploaded_file)
@@ -43,5 +44,5 @@ if uploaded_file:
     img_array = np.expand_dims(img_array, axis=0)
 
     prediction = model.predict(img_array)
-    result = "Dog" if prediction[0][0] > 0.5 else "Cat"
-    st.success(f"Prediction: {result}")
+    label = "Dog" if prediction[0][0] > 0.5 else "Cat"
+    st.success(f"Prediction: {label}")
