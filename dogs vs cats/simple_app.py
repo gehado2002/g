@@ -9,16 +9,17 @@ import os
 # تحميل الموديل من Google Drive لو مش موجود محلياً
 # ----------------------------
 model_path = "vgg16_best_model.keras"
+gdrive_url = "https://drive.google.com/uc?id=1X-OXVhF_2sIv2FDGXVIQ_oRSo4HnFc9H"
 
-# رابط المشاركة من Google Drive
-gdrive_url = "https://drive.google.com/uc?id=1X-OXVhF_2sIv2FDGXVIQ_oRSo4HnFc9H"  # هنا تحطي ID الملف
+# تحميل الموديل مرة واحدة عند بدء التطبيق
+@st.cache_resource(show_spinner=True)
+def load_model():
+    if not os.path.exists(model_path):
+        st.info("تحميل الموديل من Google Drive ...")
+        gdown.download(gdrive_url, model_path, quiet=False)
+    return tf.keras.models.load_model(model_path)
 
-if not os.path.exists(model_path):
-    st.write("تحميل الموديل من Google Drive ...")
-    gdown.download(gdrive_url, model_path, quiet=False)
-
-# تحميل الموديل
-model = tf.keras.models.load_model(model_path)
+model = load_model()
 
 # ----------------------------
 # App Config
@@ -37,8 +38,9 @@ uploaded_file = st.file_uploader("Choose an image...", type=["jpg","png","jpeg"]
 if uploaded_file:
     image = Image.open(uploaded_file)
     st.image(image, caption='Uploaded Image', use_column_width=True)
+
     img_array = np.array(image.resize((150,150)))/255.0
     img_array = np.expand_dims(img_array, axis=0)
 
     prediction = model.predict(img_array)
-    st.write("Prediction:", "Dog 🐶" if prediction[0][0] > 0.5 else "Cat 🐱")
+    st.success("Prediction: " + ("Dog 🐶" if prediction[0][0] > 0.5 else "Cat 🐱"))
