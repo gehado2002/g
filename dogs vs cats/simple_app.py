@@ -5,10 +5,6 @@ import tensorflow as tf
 import gdown
 import os
 
-import sys
-st.write("Python version:", sys.version)
-
-
 # ----------------------------
 # موديل من Google Drive
 # ----------------------------
@@ -50,4 +46,5 @@ if uploaded_file:
     prediction = model.predict(img_array)
     label = "Dog" if prediction[0][0] > 0.5 else "Cat"
     st.success(f"Prediction: {label}")
+
 
